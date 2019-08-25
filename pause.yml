@@ -1,0 +1,14 @@
+---
+- hosts: ocp
+  tasks:
+      - name: This is to test the pause feature
+        pause:
+          seconds: 10
+
+      - name: This is to show that we are now proceeding to next step after getting Continue
+        shell: date;hostname;free -m
+        register: my_date
+      - debug:
+          msg: "{{ my_date.stdout }}"
+
+     

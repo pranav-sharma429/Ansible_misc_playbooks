@@ -1,0 +1,22 @@
+---
+- hosts: ocp
+  tasks:
+  - name: Checking if file exists
+    stat:
+      path: /home/file.txt
+    register: stat_result
+
+  - name: Create the file, if it doesnt exist already
+    template:
+      src: /var/lib/awx/projects/myfile.yml
+      dest: /home/file.txt
+    when: stat_result.stat.exists == False 
+ 
+  - name: Checking the ownership
+    stat:
+      path: /home/file.txt
+    register: st
+  - name: Determining ownership status 
+    fail:
+      msg: "Whoops! file ownership has changed"
+    when: st.stat.pw_name != 'root'

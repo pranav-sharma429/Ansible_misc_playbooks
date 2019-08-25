@@ -1,0 +1,41 @@
+---
+- hosts: ocp
+  tasks:
+  - name: Removing an old Volume Group
+    lvg:
+     vg: docker-vg
+     state: absent
+     force: yes
+  - name: Creating a New Volume Group with PE=32
+    lvg:
+     vg: docker-vg
+     pvs: /dev/sdb1
+     pesize: 32
+
+  - name: Creating a Logical Volume of 1024MB
+    lvol:
+      vg: docker-vg
+      lv: imageslv
+      size: 1024
+
+  - name: Create a ext4 filesystem for imageslv
+    filesystem:
+      fstype: ext4
+      dev: /dev/docker-vg/imageslv
+
+  - name: Create a Directory for mounting
+    file:
+      path: /opt/docker-registry
+      state: directory
+      owner: pranav
+      group: pranav
+      mode: 0775
+
+  - name: Mount the partition on 
+    mount:
+      path: /opt/docker-registry
+      src: /dev/docker-vg/imageslv
+      fstype: ext4
+      state: mounted
+
+    

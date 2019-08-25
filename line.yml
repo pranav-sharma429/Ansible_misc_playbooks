@@ -1,0 +1,15 @@
+---
+- hosts: ocp
+  tasks:
+  - name: Configuring Enforcing mode for Selinux
+    lineinfile:
+     path: /etc/selinux/config
+     regexp: '^SELINUX='
+     line: 'SELINUX=enforcing'
+
+  - name: Adding Listening port to HTTP Config
+    lineinfile:
+     path: /etc/httpd/conf/httpd.conf
+     regexp: '^Listen '
+     insertafter: '^#Listen '
+     line: 'Listen 8080'

@@ -1,0 +1,8 @@
+---
+- hosts: ocp
+  tasks:
+  - name: Compressing directory from /opt to /opt/rh/
+    archive:
+      path: /opt/apache-tomcat-7.0.61
+      dest: /opt/rh/apache-tomcat-7.0.61.tar.gz
+

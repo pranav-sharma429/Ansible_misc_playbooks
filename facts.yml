@@ -1,0 +1,12 @@
+---
+- hosts: all
+  gather_facts: true
+  vars:
+    choice: "{{ ans }}"
+  tasks: 
+      - name: This is to display a gathered fact
+        command: ansible ocp136.highvail.com -m setup -a 'filter={{ ans }}'
+        register: result
+      - debug: 
+          msg: "{{ result.stdout }}"
+

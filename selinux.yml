@@ -1,0 +1,73 @@
+#1. I registered task_result and used task_result is changed as a condition for the reboot. This way, the second time I run my playbook I don't have to sit around and wait for an unnecessary reboot!
+#2. I used the shell module instead of command for the reboot task, because shell supports builtins like &&. And I used sleep 5 && reboot instead of just reboot, because Ansible needs a couple seconds to wrap up it's connection so the task can complete. If you just do a reboot or shutdown -r now, then the server will drop the SSH connection before Ansible can close it cleanly, and you'll get the same error I mentioned earlier.
+#3. You may need different values for your wait_for_connection task;
+
+
+
+---
+- hosts: ocp
+  tasks:
+  - name: Enabling Selinux in enforcing mode
+    selinux:
+     policy: targeted
+     state: enforcing
+    register: task_result
+ 
+  - name: System is going to reboot "{{ ansible_hostname }}"
+    shell: "sleep 5 && reboot"
+    async: 1
+    poll: 0
+    when: task_result is changed
+
+  - name: Wait for the reboot to complete if there was a change.
+    wait_for_connection:
+      connect_timeout: 20
+      sleep: 5
+      delay: 5
+      timeout: 300
+    when: task_result is changed
+
+  
+  - name: Create a Directory for Samba
+    file:
+      path: /opt/my_samba_share
+      state: directory
+      owner: pranav
+      group: pranav
+      mode: 0775 
+ 
+  - name: Continuing with Configuration tasks post reboot
+    copy:
+      remote_src: yes
+      src: /etc/samba/smb.conf.example
+      dest: /etc/samba/smb.conf
+      force: yes
+
+  - name: Restarting samba services
+    systemd:
+       state: restarted
+       daemon_reload: yes
+       name: smb
+  - name: Applying Selinux Context to Samba Share 
+    sefcontext:
+      target: '/opt/my_samba_share'
+      setype: samba_share_t
+      state: present
+    tags: selinux
+  - name: Applying the new label to Samba share
+    command: restorecon -irv /opt/my_samba_share
+    tags: selinux 
+
+  - name: Redirect port 443 to 8443 with Rich Rule
+    firewalld:
+      rich_rule: rule family={{ item }} forward-port port=443 protocol=tcp to-port=8443
+      zone: public
+      permanent: yes
+      immediate: yes
+      state: enabled
+    with_items:
+     - ipv4
+     - ipv6 
+    tags: firewalld
+   
+   

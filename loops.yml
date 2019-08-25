@@ -1,0 +1,47 @@
+---
+- hosts: ocp
+  tasks:
+  - name: add several users
+    user:
+      name: "{{ item }}"
+      state: present
+      groups: "apache"
+      create_home: yes
+      shell: /bin/bash
+    loop:
+      - testuser1
+      - testuser2
+
+  - name: Display correct position
+    vars:
+      skills:
+        Sysadmin: 'Steven,Michael,Rose,Ciprian,Dorothy'
+        Storage: 'Tom,Kate,Kim,Michelle,Rose'
+        Networking: 'Elaine,Anne,Todd,Miro'
+        MIS: 'Reza,Cris,James,sandra'
+        Automation: 'Steven,sandra,Dorothy'
+    debug:
+      msg: "Skill Set is {{item.key}} and User_Name is {{item.value}}"
+    with_dict: "{{ skills }}"
+    when: item.key == "Automation"
+
+  - name: Creating MySQL users
+    mysql_user:
+      login_user: root
+      login_password: ''
+      name: "{{ item }}"
+      password: 12345
+      state: present
+    with_items:
+      - alice
+      - bob 
+
+  - name: give users access to multiple databases
+    mysql_user:
+     name: "{{ item[0] }}"
+     priv: "{{ item[1] }}.*:ALL"
+     append_privs: yes
+     password: "foo"
+    with_nested:
+      - [ 'alice', 'bob' ]
+      - [ 'clientdb', 'employeedb', 'providerdb' ]

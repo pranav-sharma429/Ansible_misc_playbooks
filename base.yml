@@ -1,0 +1,20 @@
+---
+- hosts: all
+  tasks:
+      - name: Installing HTTP package 
+        yum: 
+           name: httpd
+           state: latest
+      - name: Creating a group for Web Users
+        group:
+           name: scotiaweb
+           state: present
+      - name: Creating user
+        user:
+            name: Tom
+            comment: Tom Cruise 
+            shell: /bin/bash
+            createhome: yes 
+            state: present
+            group: scotiaweb
+

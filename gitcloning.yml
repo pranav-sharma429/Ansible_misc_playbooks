@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  tasks: 
+  - name: Clone a private repository into /opt.
+    git:
+     repo: ssh://git@gitlab.highvail.com:2222/psharma/apache.git
+     version: master
+     dest: /home/pranav/apache
+     accept_hostkey: yes
+  # ssh-agent doesn't allow key to pass through remote sudo commands.
+  #   become: no
